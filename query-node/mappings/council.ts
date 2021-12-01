@@ -47,6 +47,10 @@ import {
   VariantNone,
   CastVote,
   CandidacyNoteMetadata,
+  CandidacyStatusActive,
+  CandidacyStatusWithdrawn,
+  CandidacyStatusElected,
+  CandidacyStatusLost,
 
   // Misc
   Membership,
@@ -385,7 +389,7 @@ export async function council_NewCandidate({ event, store }: EventContext & Stor
     stakingAccountId: stakingAccount.toString(),
     rewardAccountId: rewardAccount.toString(),
     member,
-
+    status: new CandidacyStatusActive(),
     electionRound,
     stake: balance,
     stakeLocked: true,
@@ -431,7 +435,17 @@ export async function council_NewCouncilElected({ event, store }: EventContext &
   // get election round and its candidates
   const electionRound = await getCurrentElectionRound(store)
 
-  const candidates = await store.getMany(Candidate, { where: { electionRoundId: electionRound.id } })
+  const where = { electionRoundId: electionRound.id, status_json: { isTypeOf_eq: 'CandidacyStatusActive' } }
+  const candidates = await store.getMany(Candidate, { where })
+
+  await Promise.all(
+    candidates.map(async (candidate) => {
+      const isElected = memberIds.includes(candidate.member.id)
+      candidate.status = new (isElected ? CandidacyStatusElected : CandidacyStatusLost)()
+
+      await store.save<Candidate>(candidate)
+    })
+  )
 
   // create new council record
   const electedCouncil = new ElectedCouncil({
@@ -553,6 +567,7 @@ export async function council_CandidacyWithdraw({ event, store }: EventContext &
   // mark candidacy as withdrawn
   const electionRound = await getCurrentElectionRound(store)
   candidate.candidacyWithdrawn = true
+  candidate.status = new CandidacyStatusWithdrawn()
   await store.save<Candidate>(candidate)
 }
 
