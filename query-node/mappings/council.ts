@@ -438,18 +438,22 @@ export async function council_NewCouncilElected({ event, store }: EventContext &
   const where = { electionRoundId: electionRound.id, status_json: { isTypeOf_eq: 'CandidacyStatusActive' } }
   const candidates = await store.getMany(Candidate, { where })
 
-  await Promise.all(
-    candidates.map(async (candidate) => {
-      const isElected = memberIds.includes(candidate.member.id)
-      candidate.status = new (isElected ? CandidacyStatusElected : CandidacyStatusLost)()
+  const electedCandidates = ([] as Candidate[]).concat(
+    ...(await Promise.all(
+      candidates.map(async (candidate) => {
+        const isElected = memberIds.includes(candidate.member.id)
+        candidate.status = new (isElected ? CandidacyStatusElected : CandidacyStatusLost)()
 
-      await store.save<Candidate>(candidate)
-    })
+        await store.save<Candidate>(candidate)
+
+        return isElected ? candidate : []
+      })
+    ))
   )
 
   // create new council record
   const electedCouncil = new ElectedCouncil({
-    councilMembers: await convertCandidatesToCouncilMembers(store, candidates, event.blockNumber),
+    councilMembers: await convertCandidatesToCouncilMembers(store, electedCandidates, event.blockNumber),
     updates: [],
     electedAtBlock: event.blockNumber,
     councilElections: oldElectedCouncil?.nextCouncilElections || [],
