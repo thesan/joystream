@@ -393,7 +393,6 @@ export async function council_NewCandidate({ event, store }: EventContext & Stor
     electionRound,
     stake: balance,
     stakeLocked: true,
-    candidacyWithdrawn: false,
     votePower: new BN(0),
     noteMetadata,
     votesRecieved: [],
@@ -570,7 +569,6 @@ export async function council_CandidacyWithdraw({ event, store }: EventContext &
 
   // mark candidacy as withdrawn
   const electionRound = await getCurrentElectionRound(store)
-  candidate.candidacyWithdrawn = true
   candidate.status = new CandidacyStatusWithdrawn()
   await store.save<Candidate>(candidate)
 }
