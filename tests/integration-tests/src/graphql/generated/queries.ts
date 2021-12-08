@@ -1,6 +1,14 @@
 import * as Types from './schema'
 
 import gql from 'graphql-tag'
+export type CouncilMemberFieldsFragment = { id: string; member: { id: string } }
+
+export type ElectedCouncilFieldsFragment = { councilMembers: Array<CouncilMemberFieldsFragment> }
+
+export type GetCurrentCouncilMembersQueryVariables = Types.Exact<{ [key: string]: never }>
+
+export type GetCurrentCouncilMembersQuery = { electedCouncils: Array<ElectedCouncilFieldsFragment> }
+
 export type ForumCategoryFieldsFragment = {
   id: string
   createdAt: any
@@ -1883,6 +1891,22 @@ export type GetBudgetSpendingEventsByEventIdsQueryVariables = Types.Exact<{
 
 export type GetBudgetSpendingEventsByEventIdsQuery = { budgetSpendingEvents: Array<BudgetSpendingEventFieldsFragment> }
 
+export const CouncilMemberFields = gql`
+  fragment CouncilMemberFields on CouncilMember {
+    id
+    member {
+      id
+    }
+  }
+`
+export const ElectedCouncilFields = gql`
+  fragment ElectedCouncilFields on ElectedCouncil {
+    councilMembers {
+      ...CouncilMemberFields
+    }
+  }
+  ${CouncilMemberFields}
+`
 export const ForumCategoryFields = gql`
   fragment ForumCategoryFields on ForumCategory {
     id
@@ -3615,6 +3639,14 @@ export const BudgetSpendingEventFields = gql`
     amount
     rationale
   }
+`
+export const GetCurrentCouncilMembers = gql`
+  query getCurrentCouncilMembers {
+    electedCouncils(where: { endedAtBlock_eq: null }) {
+      ...ElectedCouncilFields
+    }
+  }
+  ${ElectedCouncilFields}
 `
 export const GetCategoriesByIds = gql`
   query getCategoriesByIds($ids: [ID!]) {
