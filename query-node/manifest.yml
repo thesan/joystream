@@ -133,6 +133,21 @@ typegen:
     - referendum.VoteCast
     - referendum.VoteRevealed
     - referendum.StakeReleased
+    # Bounty
+    - bounty.BountyCreated
+    - bounty.BountyCanceled
+    - bounty.BountyVetoed
+    - bounty.BountyFunded
+    - bounty.BountyMaxFundingReached
+    - bounty.BountyFundingWithdrawal
+    - bounty.BountyCreatorCherryWithdrawal
+    - bounty.BountyRemoved
+    - bounty.WorkEntryAnnounced
+    - bounty.WorkEntryWithdrawn
+    - bounty.WorkEntrySlashed
+    - bounty.WorkSubmitted
+    - bounty.OracleJudgmentSubmitted
+    - bounty.WorkEntrantFundsWithdrawn
   calls:
     # Content directory
     - content.create_curator_group
@@ -641,6 +656,9 @@ mappings:
       handler: referendum_VoteRevealed
     - event: referendum.StakeReleased
       handler: referendum_StakeReleased
+    # Bounty
+    - event: bounty.BountyCreated
+      handler: bounty_BountyCreated
   extrinsicHandlers:
     # infer defaults here
     #- extrinsic: Balances.Transfer
