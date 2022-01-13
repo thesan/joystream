@@ -668,4 +668,5 @@ mappings:
     - handler: loadGenesisData
       filter:
         height: "[0,0]" # will be executed only at genesis
+    - handler: launchScheduler
   postBlockHooks:
