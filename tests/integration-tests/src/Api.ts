@@ -34,6 +34,7 @@ import {
   ProposalsCodexEventName,
   ProposalDiscussionPostCreatedEventDetails,
   ProposalsDiscussionEventName,
+  BountyCreatedEventDetails,
 } from './types'
 import {
   ApplicationId,
@@ -48,6 +49,7 @@ import { ExactDerive } from '@polkadot/api-derive'
 import { ProposalId, ProposalParameters } from '@joystream/types/proposals'
 import { BLOCKTIME, proposalTypeToProposalParamsKey } from './consts'
 import { CategoryId } from '@joystream/types/forum'
+import { BountyId } from '@joystream/types/bounty'
 
 export class ApiFactory {
   private readonly api: ApiPromise
@@ -604,6 +606,30 @@ export class Api {
     return {
       ...details,
       postId: details.event.data[0] as PostId,
+    }
+  }
+
+  public async retrieveBountyEventDetails(result: ISubmittableResult, eventName: string): Promise<EventDetails> {
+    const details = await this.retrieveEventDetails(result, 'bounty', eventName)
+    if (!details) {
+      throw new Error(`${eventName} event details not found in result: ${JSON.stringify(result.toHuman())}`)
+    }
+    return details
+  }
+
+  public async retrieveBountyCreatedEventDetails(result: ISubmittableResult): Promise<BountyCreatedEventDetails> {
+    const details = await this.retrieveBountyEventDetails(result, 'BountyCreated')
+    return {
+      ...details,
+      bountyId: details.event.data[0] as BountyId,
+    }
+  }
+
+  public async retrieveBountyCreatedEventDetails(result: ISubmittableResult): Promise<BountyCreatedEventDetails> {
+    const details = await this.retrieveBountyEventDetails(result, 'BountyCreated')
+    return {
+      ...details,
+      bountyId: details.event.data[0] as BountyId,
     }
   }
 }

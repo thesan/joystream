@@ -295,6 +295,14 @@ import {
   GetProposalDiscussionThreadsByIdsQuery,
   GetProposalDiscussionThreadsByIdsQueryVariables,
   GetProposalDiscussionThreadsByIds,
+  BountyCreatedEventFieldsFragment,
+  GetBountyCreatedEventsByEventIdsQuery,
+  GetBountyCreatedEventsByEventIdsQueryVariables,
+  GetBountyCreatedEventsByEventIds,
+  BountyFieldsFragment,
+  GetBountiesByIdsQuery,
+  GetBountiesByIdsQueryVariables,
+  GetBountiesByIds,
 } from './graphql/generated/queries'
 import { Maybe } from './graphql/generated/schema'
 import { OperationDefinitionNode } from 'graphql'
@@ -302,6 +310,7 @@ import { ProposalId } from '@joystream/types/proposals'
 import { BLOCKTIME } from './consts'
 import { CategoryId } from '@joystream/types/forum'
 import { Utils } from './utils'
+import { BountyId } from '@joystream/types/bounty'
 export class QueryNodeApi {
   private readonly queryNodeProvider: ApolloClient<NormalizedCacheObject>
   private readonly debug: Debugger.Debugger
@@ -345,7 +354,7 @@ export class QueryNodeApi {
 
       try {
         assertResultIsValid(result)
-      } catch (e) {
+      } catch (e: any) {
         debug(`Unexpected query result${e && e.message ? ` (${e.message})` : ''}`)
         await retry(e)
         continue
@@ -357,7 +366,7 @@ export class QueryNodeApi {
 
   private debugQuery(query: DocumentNode, args: Record<string, unknown>): void {
     const queryDef = query.definitions.find((d) => d.kind === 'OperationDefinition') as OperationDefinitionNode
-    this.queryDebug(`${queryDef.name!.value}(${JSON.stringify(args)})`)
+    this.queryDebug(`${queryDef.name?.value}(${JSON.stringify(args)})`)
   }
 
   // Query entity by unique input
@@ -1070,5 +1079,21 @@ export class QueryNodeApi {
       GetProposalDiscussionThreadsByIdsQuery,
       GetProposalDiscussionThreadsByIdsQueryVariables
     >(GetProposalDiscussionThreadsByIds, { ids: ids.map((id) => id.toString()) }, 'proposalDiscussionThreads')
+  }
+
+  public async getBountyCreatedEventByIds(events: EventDetails[]): Promise<BountyCreatedEventFieldsFragment[]> {
+    const eventIds = events.map((e) => this.getQueryNodeEventId(e.blockNumber, e.indexInBlock))
+    return this.multipleEntitiesQuery<
+      GetBountyCreatedEventsByEventIdsQuery,
+      GetBountyCreatedEventsByEventIdsQueryVariables
+    >(GetBountyCreatedEventsByEventIds, { eventIds }, 'bountyCreatedEvents')
+  }
+
+  public async getBountiesByIds(ids: BountyId[]): Promise<BountyFieldsFragment[]> {
+    return this.multipleEntitiesQuery<GetBountiesByIdsQuery, GetBountiesByIdsQueryVariables>(
+      GetBountiesByIds,
+      { ids: ids.map(String) },
+      'bounties'
+    )
   }
 }

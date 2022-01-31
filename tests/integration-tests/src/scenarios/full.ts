@@ -26,6 +26,7 @@ import runtimeUpgradeProposal from '../flows/proposals/runtimeUpgradeProposal'
 import exactExecutionBlock from '../flows/proposals/exactExecutionBlock'
 import expireProposal from '../flows/proposals/expireProposal'
 import proposalsDiscussion from '../flows/proposalsDiscussion'
+import bounties from '../flows/bounty/bounties'
 import { scenario } from '../Scenario'
 
 scenario(async ({ job, env }) => {
@@ -80,4 +81,7 @@ scenario(async ({ job, env }) => {
   // Council
   const secondCouncilJob = job('electing second council', electCouncil).requires(membershipSystemJob)
   job('council election failures', failToElect).requires(secondCouncilJob)
+
+  // Bounty
+  job('bounties', bounties).requires(sudoHireLead)
 })

@@ -1,11 +1,11 @@
-import { IExtrinsic } from '@polkadot/types/types'
+import { Codec, Constructor, IExtrinsic } from '@polkadot/types/types'
 import { compactToU8a, stringToU8a } from '@polkadot/util'
 import { blake2AsHex } from '@polkadot/util-crypto'
 import BN from 'bn.js'
 import fs from 'fs'
 import { decodeAddress } from '@polkadot/keyring'
-import { Bytes } from '@polkadot/types'
-import { createType } from '@joystream/types'
+import { BTreeMap, BTreeSet, Bytes } from '@polkadot/types'
+import { createType, registry } from '@joystream/types'
 import { extendDebug, Debugger } from './Debugger'
 import { BLOCKTIME } from './consts'
 import { MetadataInput } from './types'
@@ -51,6 +51,11 @@ export class Utils {
 
   public static camelToSnakeCase(key: string): string {
     return key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+  }
+
+  public static camelToSnakeCaseProps(obj: Record<string, any>): Record<string, any> {
+    const entries = Object.entries(obj)
+    return Object.fromEntries(entries.map(([key, val]) => [Utils.camelToSnakeCase(key), val]))
   }
 
   public static metadataToBytes<T>(metaClass: AnyMetadataClass<T>, obj: T): Bytes {
@@ -103,6 +108,21 @@ export class Utils {
     if (!condition) {
       throw new Error(msg || 'Assertion failed')
     }
+  }
+
+  public static whenDefined<T, R>(value: T | null | undefined, fn: (value: T) => R): R | undefined {
+    if (value !== null && typeof value !== 'undefined') return fn(value)
+  }
+
+  public static asBtreeMap<K extends Codec, V extends Codec>(
+    keyType: Constructor<K>,
+    valType: Constructor<V>
+  ): (map: Map<K, V>) => BTreeMap<K, V> {
+    return (map) => new (BTreeMap.with(keyType, valType))(registry, map)
+  }
+
+  public static asBtreeSet<T extends Codec>(valType: Constructor<T>): (list: T[]) => BTreeSet<T> {
+    return (list) => new (BTreeSet.with(valType))(registry, list)
   }
 
   public static async until(

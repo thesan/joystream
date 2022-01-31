@@ -1,6 +1,115 @@
 import * as Types from './schema'
 
 import gql from 'graphql-tag'
+export type BountyFieldsFragment = {
+  id: string
+  createdAt: any
+  title: string
+  bannerImageUri?: Types.Maybe<string>
+  description: string
+  cherry: any
+  entrantStake: any
+  workPeriod: number
+  judgingPeriod: number
+  stage: Types.BountyStage
+  totalFunding: any
+  discussionThreadId: string
+  creator?: Types.Maybe<{ id: string }>
+  oracle?: Types.Maybe<{ id: string }>
+  fundingType: { target: number } | { minFundingAmount: number; maxFundingAmount: number; fundingPeriod: number }
+  contractType: { whitelist?: Types.Maybe<Array<{ id: string }>> }
+  contributions?: Types.Maybe<Array<{ id: string }>>
+  entries?: Types.Maybe<Array<{ id: string }>>
+}
+
+export type EntryFieldsFragment = {
+  id: string
+  workSubmitted: boolean
+  worker: { id: string }
+  status: { reward: number }
+}
+
+export type BountyWorkFieldsFragment = { id: string; description: string; title: string; entry: EntryFieldsFragment }
+
+export type BountyContributionFieldsFragment = { id: string; amount: any; contributor?: Types.Maybe<{ id: string }> }
+
+export type GetBountiesByIdsQueryVariables = Types.Exact<{
+  ids?: Types.Maybe<Array<Types.Scalars['ID']> | Types.Scalars['ID']>
+}>
+
+export type GetBountiesByIdsQuery = { bounties: Array<BountyFieldsFragment> }
+
+export type GetBountiesCountQueryVariables = Types.Exact<{
+  where?: Types.Maybe<Types.BountyWhereInput>
+}>
+
+export type GetBountiesCountQuery = { bountiesConnection: { totalCount: number } }
+
+export type GetBountyQueryVariables = Types.Exact<{
+  where: Types.BountyWhereUniqueInput
+}>
+
+export type GetBountyQuery = { bountyByUniqueInput?: Types.Maybe<BountyFieldsFragment> }
+
+export type GetBountyWorksQueryVariables = Types.Exact<{
+  where?: Types.Maybe<Types.WorkSubmittedEventWhereInput>
+  order?: Types.Maybe<Array<Types.WorkSubmittedEventOrderByInput> | Types.WorkSubmittedEventOrderByInput>
+  offset?: Types.Maybe<Types.Scalars['Int']>
+  limit?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetBountyWorksQuery = { workSubmittedEvents: Array<BountyWorkFieldsFragment> }
+
+export type GetBountyWorksCountQueryVariables = Types.Exact<{
+  where?: Types.Maybe<Types.WorkSubmittedEventWhereInput>
+}>
+
+export type GetBountyWorksCountQuery = { workSubmittedEventsConnection: { totalCount: number } }
+
+export type GetUserBountyStatisticsQueryVariables = Types.Exact<{
+  memberId: Types.Scalars['ID']
+}>
+
+export type GetUserBountyStatisticsQuery = {
+  bountyEntries: Array<{ status: { reward: number } }>
+  bountyContributions: Array<{ amount: any }>
+}
+
+export type GetUserBountyTabsInformationQueryVariables = Types.Exact<{
+  memberId: Types.Scalars['ID']
+}>
+
+export type GetUserBountyTabsInformationQuery = {
+  bountiesConnection: { totalCount: number }
+  bountyContributionsConnection: { totalCount: number }
+  bountyEntriesConnection: { totalCount: number }
+}
+
+export type GetBountyContributorsQueryVariables = Types.Exact<{
+  where?: Types.Maybe<Types.BountyContributionWhereInput>
+  order?: Types.Maybe<Array<Types.BountyContributionOrderByInput> | Types.BountyContributionOrderByInput>
+  offset?: Types.Maybe<Types.Scalars['Int']>
+  limit?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetBountyContributorsQuery = { bountyContributions: Array<BountyContributionFieldsFragment> }
+
+export type BountyCreatedEventFieldsFragment = {
+  id: string
+  createdAt: any
+  inBlock: number
+  network: Types.Network
+  inExtrinsic?: Types.Maybe<string>
+  indexInBlock: number
+  bounty: { id: string }
+}
+
+export type GetBountyCreatedEventsByEventIdsQueryVariables = Types.Exact<{
+  eventIds?: Types.Maybe<Array<Types.Scalars['ID']> | Types.Scalars['ID']>
+}>
+
+export type GetBountyCreatedEventsByEventIdsQuery = { bountyCreatedEvents: Array<BountyCreatedEventFieldsFragment> }
+
 export type CouncilMemberFieldsFragment = { id: string; member: { id: string } }
 
 export type ElectedCouncilFieldsFragment = { councilMembers: Array<CouncilMemberFieldsFragment> }
@@ -1900,6 +2009,98 @@ export type GetBudgetSpendingEventsByEventIdsQueryVariables = Types.Exact<{
 
 export type GetBudgetSpendingEventsByEventIdsQuery = { budgetSpendingEvents: Array<BudgetSpendingEventFieldsFragment> }
 
+export const BountyFields = gql`
+  fragment BountyFields on Bounty {
+    id
+    createdAt
+    title
+    bannerImageUri
+    description
+    cherry
+    entrantStake
+    creator {
+      id
+    }
+    oracle {
+      id
+    }
+    fundingType {
+      ... on BountyFundingLimited {
+        minFundingAmount
+        maxFundingAmount
+        fundingPeriod
+      }
+      ... on BountyFundingPerpetual {
+        target
+      }
+    }
+    contractType {
+      ... on BountyContractClosed {
+        whitelist {
+          id
+        }
+      }
+    }
+    workPeriod
+    judgingPeriod
+    stage
+    totalFunding
+    discussionThreadId
+    contributions {
+      id
+    }
+    entries {
+      id
+    }
+  }
+`
+export const EntryFields = gql`
+  fragment EntryFields on BountyEntry {
+    id
+    worker {
+      id
+    }
+    workSubmitted
+    status {
+      ... on BountyEntryStatusWinner {
+        reward
+      }
+    }
+  }
+`
+export const BountyWorkFields = gql`
+  fragment BountyWorkFields on WorkSubmittedEvent {
+    id
+    description
+    title
+    entry {
+      ...EntryFields
+    }
+  }
+  ${EntryFields}
+`
+export const BountyContributionFields = gql`
+  fragment BountyContributionFields on BountyContribution {
+    id
+    amount
+    contributor {
+      id
+    }
+  }
+`
+export const BountyCreatedEventFields = gql`
+  fragment BountyCreatedEventFields on BountyCreatedEvent {
+    id
+    createdAt
+    inBlock
+    network
+    inExtrinsic
+    indexInBlock
+    bounty {
+      id
+    }
+  }
+`
 export const CouncilMemberFields = gql`
   fragment CouncilMemberFields on CouncilMember {
     id
@@ -3656,6 +3857,97 @@ export const BudgetSpendingEventFields = gql`
     amount
     rationale
   }
+`
+export const GetBountiesByIds = gql`
+  query GetBountiesByIds($ids: [ID!]) {
+    bounties(where: { id_in: $ids }) {
+      ...BountyFields
+    }
+  }
+  ${BountyFields}
+`
+export const GetBountiesCount = gql`
+  query GetBountiesCount($where: BountyWhereInput) {
+    bountiesConnection(where: $where) {
+      totalCount
+    }
+  }
+`
+export const GetBounty = gql`
+  query GetBounty($where: BountyWhereUniqueInput!) {
+    bountyByUniqueInput(where: $where) {
+      ...BountyFields
+    }
+  }
+  ${BountyFields}
+`
+export const GetBountyWorks = gql`
+  query GetBountyWorks(
+    $where: WorkSubmittedEventWhereInput
+    $order: [WorkSubmittedEventOrderByInput!]
+    $offset: Int
+    $limit: Int
+  ) {
+    workSubmittedEvents(where: $where, orderBy: $order, offset: $offset, limit: $limit) {
+      ...BountyWorkFields
+    }
+  }
+  ${BountyWorkFields}
+`
+export const GetBountyWorksCount = gql`
+  query GetBountyWorksCount($where: WorkSubmittedEventWhereInput) {
+    workSubmittedEventsConnection(where: $where) {
+      totalCount
+    }
+  }
+`
+export const GetUserBountyStatistics = gql`
+  query GetUserBountyStatistics($memberId: ID!) {
+    bountyEntries(where: { worker: { id_eq: $memberId } }) {
+      status {
+        ... on BountyEntryStatusWinner {
+          reward
+        }
+      }
+    }
+    bountyContributions(where: { contributor: { id_eq: $memberId } }) {
+      amount
+    }
+  }
+`
+export const GetUserBountyTabsInformation = gql`
+  query GetUserBountyTabsInformation($memberId: ID!) {
+    bountiesConnection(where: { creator: { id_eq: $memberId } }) {
+      totalCount
+    }
+    bountyContributionsConnection(where: { contributor: { id_eq: $memberId } }) {
+      totalCount
+    }
+    bountyEntriesConnection(where: { worker: { id_eq: $memberId } }) {
+      totalCount
+    }
+  }
+`
+export const GetBountyContributors = gql`
+  query GetBountyContributors(
+    $where: BountyContributionWhereInput
+    $order: [BountyContributionOrderByInput!]
+    $offset: Int
+    $limit: Int
+  ) {
+    bountyContributions(where: $where, orderBy: $order, offset: $offset, limit: $limit) {
+      ...BountyContributionFields
+    }
+  }
+  ${BountyContributionFields}
+`
+export const GetBountyCreatedEventsByEventIds = gql`
+  query getBountyCreatedEventsByEventIds($eventIds: [ID!]) {
+    bountyCreatedEvents(where: { id_in: $eventIds }) {
+      ...BountyCreatedEventFields
+    }
+  }
+  ${BountyCreatedEventFields}
 `
 export const GetCurrentCouncilMembers = gql`
   query getCurrentCouncilMembers {

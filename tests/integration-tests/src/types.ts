@@ -6,6 +6,7 @@ import { CategoryId } from '@joystream/types/forum'
 import { MembershipBoughtEvent } from './graphql/generated/schema'
 import { ProposalDetails, ProposalId } from '@joystream/types/proposals'
 import { CreateInterface } from '@joystream/types'
+import { BountyId } from '@joystream/types/bounty'
 
 export type AnyQueryNodeEvent = Pick<
   MembershipBoughtEvent,
@@ -175,3 +176,7 @@ export type ForumEventName =
   | 'VoteOnPoll'
   | 'CategoryStickyThreadUpdate'
   | 'CategoryMembershipOfModeratorUpdated'
+
+export interface BountyCreatedEventDetails extends EventDetails {
+  bountyId: BountyId
+}

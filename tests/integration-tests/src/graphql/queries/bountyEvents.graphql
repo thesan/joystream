@@ -1,0 +1,18 @@
+
+fragment BountyCreatedEventFields on BountyCreatedEvent {
+  id
+  createdAt
+  inBlock
+  network
+  inExtrinsic
+  indexInBlock
+  bounty {
+    id
+  }
+}
+
+query getBountyCreatedEventsByEventIds($eventIds: [ID!]) {
+  bountyCreatedEvents(where: { id_in: $eventIds }) {
+    ...BountyCreatedEventFields
+  }
+}
